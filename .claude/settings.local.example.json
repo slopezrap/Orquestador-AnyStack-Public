@@ -1,0 +1,15 @@
+{
+  "env": {
+    "CLAUDE_ORCHESTRATOR_ROOT": ".",
+    "CLAUDE_SPAWN_BUDGET": "70",
+    "CLAUDE_GIT_WORKFLOW": "pr-flow"
+  },
+  "notes": [
+    "Project settings default to permissions.defaultMode=bypassPermissions for this isolated orchestrator workflow.",
+    "On macOS with Rancher Desktop, ensure ~/.rd/bin is on PATH or let scripts/unix-runtime-env.sh add it for hooks/scripts.",
+    "Use this local file only for machine-specific overrides such as secrets, MCP server paths, or local docker provider preferences."
+  ],
+  "permissions": {
+    "defaultMode": "bypassPermissions"
+  }
+}

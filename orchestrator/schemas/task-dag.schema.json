@@ -1,0 +1,408 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Blueprint Task DAG",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "mode",
+    "nodes",
+    "edges",
+    "topological_layers",
+    "ready_rule",
+    "conflict_model",
+    "parallelism",
+    "parallel_groups",
+    "lock_model"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "2.0"
+    },
+    "mode": {
+      "const": "explicit_dag"
+    },
+    "node_count": {
+      "type": "integer"
+    },
+    "edge_count": {
+      "type": "integer"
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "task_id",
+          "title",
+          "description",
+          "dependency_rationale",
+          "phase_id",
+          "status",
+          "depends_on",
+          "dependents",
+          "write_set",
+          "conflict_groups",
+          "depends_on_rationale",
+          "dependency_edges",
+          "resolved_dependencies",
+          "arc42_refs",
+          "step_id",
+          "order",
+          "type",
+          "implements",
+          "builds",
+          "closes_journeys",
+          "journey_refs",
+          "read_set",
+          "conflict_group",
+          "building_block_refs",
+          "verification_refs",
+          "risk",
+          "risk_level",
+          "verify_mode",
+          "verification_surface",
+          "acceptance",
+          "evidence_contract",
+          "contract_refs",
+          "locks",
+          "parallel"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "task_id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 4
+          },
+          "description": {
+            "type": "string",
+            "minLength": 240
+          },
+          "phase_id": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "todo",
+              "ready",
+              "claimed",
+              "in_progress",
+              "validator_tester_pending",
+              "needs_debug",
+              "ready_for_close",
+              "verified_pending_close",
+              "blocked",
+              "done",
+              "superseded",
+              "waived"
+            ]
+          },
+          "depends_on": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "dependents": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "write_set": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "conflict_groups": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "risk": {
+            "type": "string"
+          },
+          "verify_mode": {
+            "type": "string"
+          },
+          "dependency_rationale": {
+            "type": "string",
+            "minLength": 180
+          },
+          "depends_on_rationale": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "dependency_edges": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "from",
+                "to",
+                "reason"
+              ],
+              "properties": {
+                "from": {
+                  "type": "string"
+                },
+                "to": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "resolved_dependencies": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "title",
+                "description",
+                "dependency_rationale",
+                "phase_id"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "dependency_rationale": {
+                  "type": "string"
+                },
+                "phase_id": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "implements": {
+                  "type": "array"
+                },
+                "builds": {
+                  "type": "array"
+                },
+                "verification_refs": {
+                  "type": "array"
+                }
+              }
+            }
+          },
+          "arc42_refs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          },
+          "locks": {
+            "type": "object"
+          },
+          "parallel": {
+            "type": "object"
+          },
+          "verification_surface": {
+            "type": "object",
+            "required": [
+              "kind",
+              "method",
+              "requires_visual_mcp",
+              "requires_screen_journey_reviewer",
+              "journey_refs_are_ui_signals",
+              "rationale"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string"
+              },
+              "method": {
+                "type": "string"
+              },
+              "requires_visual_mcp": {
+                "type": "boolean"
+              },
+              "requires_screen_journey_reviewer": {
+                "type": "boolean"
+              },
+              "journey_refs_are_ui_signals": {
+                "type": "boolean"
+              },
+              "journey_refs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "ui_spec_refs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "route_refs": {
+                "type": "array"
+              },
+              "rationale": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "from",
+          "to",
+          "reason"
+        ],
+        "properties": {
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "topological_layers": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "ready_rule": {
+      "type": "string"
+    },
+    "conflict_model": {
+      "type": "object"
+    },
+    "parallelism": {
+      "type": "object",
+      "required": [
+        "max_parallel_slices",
+        "selection_policy",
+        "lock_backend",
+        "supported_platforms"
+      ],
+      "properties": {
+        "max_parallel_slices": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "selection_policy": {
+          "type": "string"
+        },
+        "intra_wave_conflict_check": {
+          "type": "boolean"
+        },
+        "claim_rechecks_active_conflicts": {
+          "type": "boolean"
+        },
+        "lock_backend": {
+          "const": "posix_fcntl_file_locks"
+        },
+        "supported_platforms": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "parallel_groups": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "layer",
+          "batch",
+          "task_ids",
+          "parallel_safe"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "layer": {
+            "type": "integer"
+          },
+          "batch": {
+            "type": "integer"
+          },
+          "task_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "parallel_safe": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "lock_model": {
+      "type": "object",
+      "required": [
+        "backend",
+        "registry_lock",
+        "runtime_lock",
+        "handoff_lock_pattern"
+      ],
+      "properties": {
+        "backend": {
+          "type": "string"
+        },
+        "platforms": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "registry_lock": {
+          "type": "string"
+        },
+        "runtime_lock": {
+          "type": "string"
+        },
+        "handoff_lock_pattern": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

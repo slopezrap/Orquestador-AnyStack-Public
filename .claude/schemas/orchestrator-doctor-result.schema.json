@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "orchestrator.anystack.doctor-result",
+  "title": "Blueprint orchestrator doctor result",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["ok"],
+  "properties": {
+    "ok": {"type": "boolean"},
+    "errors": {"type": "array"},
+    "warnings": {"type": "array"},
+    "checks": {"type": "object"},
+    "root": {"type": "string"}
+  },
+  "x-enforced-by": ["orchestrator/runtime/orchestrator_doctor.py", "scripts/orchestrator-doctor.sh"]
+}

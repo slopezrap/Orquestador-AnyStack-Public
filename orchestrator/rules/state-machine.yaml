@@ -1,0 +1,66 @@
+schema_version: "current"
+policy: "This file is the single lifecycle authority for orchestrator-AnyStack. Role prompts, skills, hooks and docs must resolve lifecycle legality through this state machine plus .claude/orchestrator-contract.json. Task descriptions, dependency_rationale, per-dependency depends_on_rationale, dependency_edges, resolved_specs, parallel.safe_group and locks carry human/runtime scope from the compiled blueprint. Info-only roles may write findings only; mutating roles request transitions through validated CLAUDE_TRAILER blocks."
+statuses:
+  todo: "Compiled but not schedulable yet. Dependencies are not all done."
+  ready: "Dependencies done; eligible for next-wave."
+  claimed: "Reserved by a worker/terminal under lock."
+  in_progress: "Planner/developer/debugger lifecycle is active."
+  validator_tester_pending: "Developer/debugger finished; validator and tester gate must run."
+  needs_debug: "Tester, validator metadata, or verifier found issues; debugger required."
+  ready_for_close: "Tester passed with real/provided data; verify-slice gate pending."
+  verified_pending_close: "Verify-slice passed with evidence; closer must close."
+  blocked: "Blocked with explicit reason."
+  done: "Closed by closer with report, Git workflow, cleanup, and proof."
+  superseded: "Superseded by another slice/follow-up."
+  waived: "Human waiver; not normal flow."
+active_statuses:
+ - claimed
+ - in_progress
+ - validator_tester_pending
+ - needs_debug
+ - ready_for_close
+ - verified_pending_close
+transitions:
+  system:
+   - [todo, ready]
+   - [blocked, ready]
+  claim_task:
+   - [ready, claimed]
+   - [claimed, in_progress]
+  developer:
+   - [claimed, validator_tester_pending]
+   - [in_progress, validator_tester_pending]
+   - [claimed, blocked]
+   - [in_progress, blocked]
+  tester:
+   - [validator_tester_pending, ready_for_close]
+   - [validator_tester_pending, needs_debug]
+   - [validator_tester_pending, blocked]
+  debugger:
+   - [needs_debug, validator_tester_pending]
+   - [needs_debug, blocked]
+  slice-verifier:
+   - [ready_for_close, verified_pending_close]
+   - [ready_for_close, needs_debug]
+   - [ready_for_close, blocked]
+  deployer:
+   - [ready_for_close, ready_for_close]
+   - [ready_for_close, blocked]
+  closer:
+   - [verified_pending_close, done]
+   - [verified_pending_close, blocked]
+   - [blocked, blocked]
+terminal_statuses:
+ - done
+ - superseded
+ - waived
+info_only_roles:
+ - planner
+ - main-orchestrator
+ - official-docs-researcher
+ - blueprint-reviewer
+ - task-planner
+ - document-analyzer
+ - project-architect
+ - validator
+ - screen-journey-reviewer

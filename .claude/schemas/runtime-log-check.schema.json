@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "orchestrator.anystack.runtime-log-check",
+  "title": "Runtime log check result",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "ok"
+  ],
+  "properties": {
+    "ok": {
+      "type": "boolean"
+    },
+    "task_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "files_scanned": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "findings": {
+      "type": "array"
+    },
+    "runtime_logs_clean": {
+      "type": "boolean"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pass",
+        "errors_found",
+        "no_logs",
+        "clean",
+        "blocked",
+        "unknown"
+      ]
+    },
+    "files_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "findings_count": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "x-runtime-note": "Runtime contract schema. The runtime returns ok/status over orchestrator-state logs and task evidence."
+}

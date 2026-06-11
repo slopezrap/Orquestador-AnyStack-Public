@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)",
+      "Read(./config/credentials.json)"
+    ],
+    "defaultMode": "bypassPermissions"
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -lc 'hook=\"$1\"; shift || true; roots=(); add_root(){ if [ -n \"${1:-}\" ] && [ -d \"$1\" ]; then roots+=(\"$1\"); fi; return 0; }; probe=\"${CLAUDE_PROJECT_DIR:-$PWD}\"; canonical_probe=\"${CLAUDE_ORCHESTRATOR_ROOT:-$probe}\"; tmp_common=\"${TMPDIR:-/tmp}/claude_hook_common.$$\"; if command -v git >/dev/null 2>&1 && git -C \"$canonical_probe\" rev-parse --path-format=absolute --git-common-dir >\"$tmp_common\" 2>/dev/null; then common=\"$(cat \"$tmp_common\")\"; rm -f \"$tmp_common\"; [ \"$(basename \"$common\")\" = \".git\" ] && add_root \"$(dirname \"$common\")\"; fi; rm -f \"$tmp_common\" 2>/dev/null || true; case \"$canonical_probe\" in *-worktrees/*) add_root \"${canonical_probe%%-worktrees/*}\";; esac; add_root \"${CLAUDE_ORCHESTRATOR_ROOT:-}\"; if command -v git >/dev/null 2>&1 && git -C \"$probe\" rev-parse --path-format=absolute --git-common-dir >\"$tmp_common\" 2>/dev/null; then common=\"$(cat \"$tmp_common\")\"; rm -f \"$tmp_common\"; [ \"$(basename \"$common\")\" = \".git\" ] && add_root \"$(dirname \"$common\")\"; fi; rm -f \"$tmp_common\" 2>/dev/null || true; add_root \"$probe\"; add_root \"$PWD\"; case \"$probe\" in *-worktrees/*) add_root \"${probe%%-worktrees/*}\";; esac; cur=\"$probe\"; while [ -n \"$cur\" ] && [ \"$cur\" != / ]; do add_root \"$cur\"; cur=\"$(dirname \"$cur\")\"; done; seen=\"|\"; for root in \"${roots[@]}\"; do case \"$seen\" in *\"|$root|\"*) continue;; esac; seen=\"$seen$root|\"; if [ -f \"$root/.claude/bin/run_hook.sh\" ]; then export CLAUDE_WORKSPACE_ROOT=\"$probe\"; exec bash \"$root/.claude/bin/run_hook.sh\" \"$hook\" \"$@\"; fi; done; echo \"HOOK_ROOT_WARN: missing $hook from $probe; set CLAUDE_ORCHESTRATOR_ROOT to canonical repo root\" >&2; exit 0' _ hook_spawn_budget.py",
+            "timeout": 15
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -lc 'hook=\"$1\"; shift || true; roots=(); add_root(){ if [ -n \"${1:-}\" ] && [ -d \"$1\" ]; then roots+=(\"$1\"); fi; return 0; }; probe=\"${CLAUDE_PROJECT_DIR:-$PWD}\"; canonical_probe=\"${CLAUDE_ORCHESTRATOR_ROOT:-$probe}\"; tmp_common=\"${TMPDIR:-/tmp}/claude_hook_common.$$\"; if command -v git >/dev/null 2>&1 && git -C \"$canonical_probe\" rev-parse --path-format=absolute --git-common-dir >\"$tmp_common\" 2>/dev/null; then common=\"$(cat \"$tmp_common\")\"; rm -f \"$tmp_common\"; [ \"$(basename \"$common\")\" = \".git\" ] && add_root \"$(dirname \"$common\")\"; fi; rm -f \"$tmp_common\" 2>/dev/null || true; case \"$canonical_probe\" in *-worktrees/*) add_root \"${canonical_probe%%-worktrees/*}\";; esac; add_root \"${CLAUDE_ORCHESTRATOR_ROOT:-}\"; if command -v git >/dev/null 2>&1 && git -C \"$probe\" rev-parse --path-format=absolute --git-common-dir >\"$tmp_common\" 2>/dev/null; then common=\"$(cat \"$tmp_common\")\"; rm -f \"$tmp_common\"; [ \"$(basename \"$common\")\" = \".git\" ] && add_root \"$(dirname \"$common\")\"; fi; rm -f \"$tmp_common\" 2>/dev/null || true; add_root \"$probe\"; add_root \"$PWD\"; case \"$probe\" in *-worktrees/*) add_root \"${probe%%-worktrees/*}\";; esac; cur=\"$probe\"; while [ -n \"$cur\" ] && [ \"$cur\" != / ]; do add_root \"$cur\"; cur=\"$(dirname \"$cur\")\"; done; seen=\"|\"; for root in \"${roots[@]}\"; do case \"$seen\" in *\"|$root|\"*) continue;; esac; seen=\"$seen$root|\"; if [ -f \"$root/.claude/bin/run_hook.sh\" ]; then export CLAUDE_WORKSPACE_ROOT=\"$probe\"; exec bash \"$root/.claude/bin/run_hook.sh\" \"$hook\" \"$@\"; fi; done; echo \"HOOK_ROOT_WARN: missing $hook from $probe; set CLAUDE_ORCHESTRATOR_ROOT to canonical repo root\" >&2; exit 0' _ hook_bash_command_guard.py",
+            "timeout": 15
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -lc 'hook=\"$1\"; shift || true; roots=(); add_root(){ if [ -n \"${1:-}\" ] && [ -d \"$1\" ]; then roots+=(\"$1\"); fi; return 0; }; probe=\"${CLAUDE_PROJECT_DIR:-$PWD}\"; canonical_probe=\"${CLAUDE_ORCHESTRATOR_ROOT:-$probe}\"; tmp_common=\"${TMPDIR:-/tmp}/claude_hook_common.$$\"; if command -v git >/dev/null 2>&1 && git -C \"$canonical_probe\" rev-parse --path-format=absolute --git-common-dir >\"$tmp_common\" 2>/dev/null; then common=\"$(cat \"$tmp_common\")\"; rm -f \"$tmp_common\"; [ \"$(basename \"$common\")\" = \".git\" ] && add_root \"$(dirname \"$common\")\"; fi; rm -f \"$tmp_common\" 2>/dev/null || true; case \"$canonical_probe\" in *-worktrees/*) add_root \"${canonical_probe%%-worktrees/*}\";; esac; add_root \"${CLAUDE_ORCHESTRATOR_ROOT:-}\"; if command -v git >/dev/null 2>&1 && git -C \"$probe\" rev-parse --path-format=absolute --git-common-dir >\"$tmp_common\" 2>/dev/null; then common=\"$(cat \"$tmp_common\")\"; rm -f \"$tmp_common\"; [ \"$(basename \"$common\")\" = \".git\" ] && add_root \"$(dirname \"$common\")\"; fi; rm -f \"$tmp_common\" 2>/dev/null || true; add_root \"$probe\"; add_root \"$PWD\"; case \"$probe\" in *-worktrees/*) add_root \"${probe%%-worktrees/*}\";; esac; cur=\"$probe\"; while [ -n \"$cur\" ] && [ \"$cur\" != / ]; do add_root \"$cur\"; cur=\"$(dirname \"$cur\")\"; done; seen=\"|\"; for root in \"${roots[@]}\"; do case \"$seen\" in *\"|$root|\"*) continue;; esac; seen=\"$seen$root|\"; if [ -f \"$root/.claude/bin/run_hook.sh\" ]; then export CLAUDE_WORKSPACE_ROOT=\"$probe\"; exec bash \"$root/.claude/bin/run_hook.sh\" \"$hook\" \"$@\"; fi; done; echo \"HOOK_ROOT_WARN: missing $hook from $probe; set CLAUDE_ORCHESTRATOR_ROOT to canonical repo root\" >&2; exit 0' _ hook_write_scope_guard.py",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -lc 'hook=\"$1\"; shift || true; roots=(); add_root(){ if [ -n \"${1:-}\" ] && [ -d \"$1\" ]; then roots+=(\"$1\"); fi; return 0; }; probe=\"${CLAUDE_PROJECT_DIR:-$PWD}\"; canonical_probe=\"${CLAUDE_ORCHESTRATOR_ROOT:-$probe}\"; tmp_common=\"${TMPDIR:-/tmp}/claude_hook_common.$$\"; if command -v git >/dev/null 2>&1 && git -C \"$canonical_probe\" rev-parse --path-format=absolute --git-common-dir >\"$tmp_common\" 2>/dev/null; then common=\"$(cat \"$tmp_common\")\"; rm -f \"$tmp_common\"; [ \"$(basename \"$common\")\" = \".git\" ] && add_root \"$(dirname \"$common\")\"; fi; rm -f \"$tmp_common\" 2>/dev/null || true; case \"$canonical_probe\" in *-worktrees/*) add_root \"${canonical_probe%%-worktrees/*}\";; esac; add_root \"${CLAUDE_ORCHESTRATOR_ROOT:-}\"; if command -v git >/dev/null 2>&1 && git -C \"$probe\" rev-parse --path-format=absolute --git-common-dir >\"$tmp_common\" 2>/dev/null; then common=\"$(cat \"$tmp_common\")\"; rm -f \"$tmp_common\"; [ \"$(basename \"$common\")\" = \".git\" ] && add_root \"$(dirname \"$common\")\"; fi; rm -f \"$tmp_common\" 2>/dev/null || true; add_root \"$probe\"; add_root \"$PWD\"; case \"$probe\" in *-worktrees/*) add_root \"${probe%%-worktrees/*}\";; esac; cur=\"$probe\"; while [ -n \"$cur\" ] && [ \"$cur\" != / ]; do add_root \"$cur\"; cur=\"$(dirname \"$cur\")\"; done; seen=\"|\"; for root in \"${roots[@]}\"; do case \"$seen\" in *\"|$root|\"*) continue;; esac; seen=\"$seen$root|\"; if [ -f \"$root/.claude/bin/run_hook.sh\" ]; then export CLAUDE_WORKSPACE_ROOT=\"$probe\"; exec bash \"$root/.claude/bin/run_hook.sh\" \"$hook\" \"$@\"; fi; done; echo \"HOOK_ROOT_WARN: missing $hook from $probe; set CLAUDE_ORCHESTRATOR_ROOT to canonical repo root\" >&2; exit 0' _ hook_agent_return_ledger.py",
+            "timeout": 15
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit|Bash|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -lc 'hook=\"$1\"; shift || true; roots=(); add_root(){ if [ -n \"${1:-}\" ] && [ -d \"$1\" ]; then roots+=(\"$1\"); fi; return 0; }; probe=\"${CLAUDE_PROJECT_DIR:-$PWD}\"; canonical_probe=\"${CLAUDE_ORCHESTRATOR_ROOT:-$probe}\"; tmp_common=\"${TMPDIR:-/tmp}/claude_hook_common.$$\"; if command -v git >/dev/null 2>&1 && git -C \"$canonical_probe\" rev-parse --path-format=absolute --git-common-dir >\"$tmp_common\" 2>/dev/null; then common=\"$(cat \"$tmp_common\")\"; rm -f \"$tmp_common\"; [ \"$(basename \"$common\")\" = \".git\" ] && add_root \"$(dirname \"$common\")\"; fi; rm -f \"$tmp_common\" 2>/dev/null || true; case \"$canonical_probe\" in *-worktrees/*) add_root \"${canonical_probe%%-worktrees/*}\";; esac; add_root \"${CLAUDE_ORCHESTRATOR_ROOT:-}\"; if command -v git >/dev/null 2>&1 && git -C \"$probe\" rev-parse --path-format=absolute --git-common-dir >\"$tmp_common\" 2>/dev/null; then common=\"$(cat \"$tmp_common\")\"; rm -f \"$tmp_common\"; [ \"$(basename \"$common\")\" = \".git\" ] && add_root \"$(dirname \"$common\")\"; fi; rm -f \"$tmp_common\" 2>/dev/null || true; add_root \"$probe\"; add_root \"$PWD\"; case \"$probe\" in *-worktrees/*) add_root \"${probe%%-worktrees/*}\";; esac; cur=\"$probe\"; while [ -n \"$cur\" ] && [ \"$cur\" != / ]; do add_root \"$cur\"; cur=\"$(dirname \"$cur\")\"; done; seen=\"|\"; for root in \"${roots[@]}\"; do case \"$seen\" in *\"|$root|\"*) continue;; esac; seen=\"$seen$root|\"; if [ -f \"$root/.claude/bin/run_hook.sh\" ]; then export CLAUDE_WORKSPACE_ROOT=\"$probe\"; exec bash \"$root/.claude/bin/run_hook.sh\" \"$hook\" \"$@\"; fi; done; echo \"HOOK_ROOT_WARN: missing $hook from $probe; set CLAUDE_ORCHESTRATOR_ROOT to canonical repo root\" >&2; exit 0' _ hook_update_ledger.py",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -lc 'hook=\"$1\"; shift || true; roots=(); add_root(){ if [ -n \"${1:-}\" ] && [ -d \"$1\" ]; then roots+=(\"$1\"); fi; return 0; }; probe=\"${CLAUDE_PROJECT_DIR:-$PWD}\"; canonical_probe=\"${CLAUDE_ORCHESTRATOR_ROOT:-$probe}\"; tmp_common=\"${TMPDIR:-/tmp}/claude_hook_common.$$\"; if command -v git >/dev/null 2>&1 && git -C \"$canonical_probe\" rev-parse --path-format=absolute --git-common-dir >\"$tmp_common\" 2>/dev/null; then common=\"$(cat \"$tmp_common\")\"; rm -f \"$tmp_common\"; [ \"$(basename \"$common\")\" = \".git\" ] && add_root \"$(dirname \"$common\")\"; fi; rm -f \"$tmp_common\" 2>/dev/null || true; case \"$canonical_probe\" in *-worktrees/*) add_root \"${canonical_probe%%-worktrees/*}\";; esac; add_root \"${CLAUDE_ORCHESTRATOR_ROOT:-}\"; if command -v git >/dev/null 2>&1 && git -C \"$probe\" rev-parse --path-format=absolute --git-common-dir >\"$tmp_common\" 2>/dev/null; then common=\"$(cat \"$tmp_common\")\"; rm -f \"$tmp_common\"; [ \"$(basename \"$common\")\" = \".git\" ] && add_root \"$(dirname \"$common\")\"; fi; rm -f \"$tmp_common\" 2>/dev/null || true; add_root \"$probe\"; add_root \"$PWD\"; case \"$probe\" in *-worktrees/*) add_root \"${probe%%-worktrees/*}\";; esac; cur=\"$probe\"; while [ -n \"$cur\" ] && [ \"$cur\" != / ]; do add_root \"$cur\"; cur=\"$(dirname \"$cur\")\"; done; seen=\"|\"; for root in \"${roots[@]}\"; do case \"$seen\" in *\"|$root|\"*) continue;; esac; seen=\"$seen$root|\"; if [ -f \"$root/.claude/bin/run_hook.sh\" ]; then export CLAUDE_WORKSPACE_ROOT=\"$probe\"; exec bash \"$root/.claude/bin/run_hook.sh\" \"$hook\" \"$@\"; fi; done; echo \"HOOK_ROOT_WARN: missing $hook from $probe; set CLAUDE_ORCHESTRATOR_ROOT to canonical repo root\" >&2; exit 0' _ hook_subagent_start_context.py",
+            "timeout": 20
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -lc 'hook=\"$1\"; shift || true; roots=(); add_root(){ if [ -n \"${1:-}\" ] && [ -d \"$1\" ]; then roots+=(\"$1\"); fi; return 0; }; probe=\"${CLAUDE_PROJECT_DIR:-$PWD}\"; canonical_probe=\"${CLAUDE_ORCHESTRATOR_ROOT:-$probe}\"; tmp_common=\"${TMPDIR:-/tmp}/claude_hook_common.$$\"; if command -v git >/dev/null 2>&1 && git -C \"$canonical_probe\" rev-parse --path-format=absolute --git-common-dir >\"$tmp_common\" 2>/dev/null; then common=\"$(cat \"$tmp_common\")\"; rm -f \"$tmp_common\"; [ \"$(basename \"$common\")\" = \".git\" ] && add_root \"$(dirname \"$common\")\"; fi; rm -f \"$tmp_common\" 2>/dev/null || true; case \"$canonical_probe\" in *-worktrees/*) add_root \"${canonical_probe%%-worktrees/*}\";; esac; add_root \"${CLAUDE_ORCHESTRATOR_ROOT:-}\"; if command -v git >/dev/null 2>&1 && git -C \"$probe\" rev-parse --path-format=absolute --git-common-dir >\"$tmp_common\" 2>/dev/null; then common=\"$(cat \"$tmp_common\")\"; rm -f \"$tmp_common\"; [ \"$(basename \"$common\")\" = \".git\" ] && add_root \"$(dirname \"$common\")\"; fi; rm -f \"$tmp_common\" 2>/dev/null || true; add_root \"$probe\"; add_root \"$PWD\"; case \"$probe\" in *-worktrees/*) add_root \"${probe%%-worktrees/*}\";; esac; cur=\"$probe\"; while [ -n \"$cur\" ] && [ \"$cur\" != / ]; do add_root \"$cur\"; cur=\"$(dirname \"$cur\")\"; done; seen=\"|\"; for root in \"${roots[@]}\"; do case \"$seen\" in *\"|$root|\"*) continue;; esac; seen=\"$seen$root|\"; if [ -f \"$root/.claude/bin/run_hook.sh\" ]; then export CLAUDE_WORKSPACE_ROOT=\"$probe\"; exec bash \"$root/.claude/bin/run_hook.sh\" \"$hook\" \"$@\"; fi; done; echo \"HOOK_ROOT_WARN: missing $hook from $probe; set CLAUDE_ORCHESTRATOR_ROOT to canonical repo root\" >&2; exit 0' _ hook_capture_subagent_stop.py",
+            "timeout": 90
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -lc 'hook=\"$1\"; shift || true; roots=(); add_root(){ if [ -n \"${1:-}\" ] && [ -d \"$1\" ]; then roots+=(\"$1\"); fi; return 0; }; probe=\"${CLAUDE_PROJECT_DIR:-$PWD}\"; canonical_probe=\"${CLAUDE_ORCHESTRATOR_ROOT:-$probe}\"; tmp_common=\"${TMPDIR:-/tmp}/claude_hook_common.$$\"; if command -v git >/dev/null 2>&1 && git -C \"$canonical_probe\" rev-parse --path-format=absolute --git-common-dir >\"$tmp_common\" 2>/dev/null; then common=\"$(cat \"$tmp_common\")\"; rm -f \"$tmp_common\"; [ \"$(basename \"$common\")\" = \".git\" ] && add_root \"$(dirname \"$common\")\"; fi; rm -f \"$tmp_common\" 2>/dev/null || true; case \"$canonical_probe\" in *-worktrees/*) add_root \"${canonical_probe%%-worktrees/*}\";; esac; add_root \"${CLAUDE_ORCHESTRATOR_ROOT:-}\"; if command -v git >/dev/null 2>&1 && git -C \"$probe\" rev-parse --path-format=absolute --git-common-dir >\"$tmp_common\" 2>/dev/null; then common=\"$(cat \"$tmp_common\")\"; rm -f \"$tmp_common\"; [ \"$(basename \"$common\")\" = \".git\" ] && add_root \"$(dirname \"$common\")\"; fi; rm -f \"$tmp_common\" 2>/dev/null || true; add_root \"$probe\"; add_root \"$PWD\"; case \"$probe\" in *-worktrees/*) add_root \"${probe%%-worktrees/*}\";; esac; cur=\"$probe\"; while [ -n \"$cur\" ] && [ \"$cur\" != / ]; do add_root \"$cur\"; cur=\"$(dirname \"$cur\")\"; done; seen=\"|\"; for root in \"${roots[@]}\"; do case \"$seen\" in *\"|$root|\"*) continue;; esac; seen=\"$seen$root|\"; if [ -f \"$root/.claude/bin/run_hook.sh\" ]; then export CLAUDE_WORKSPACE_ROOT=\"$probe\"; exec bash \"$root/.claude/bin/run_hook.sh\" \"$hook\" \"$@\"; fi; done; echo \"HOOK_ROOT_WARN: missing $hook from $probe; set CLAUDE_ORCHESTRATOR_ROOT to canonical repo root\" >&2; exit 0' _ hook_session_context.py",
+            "timeout": 20
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -lc 'hook=\"$1\"; shift || true; roots=(); add_root(){ if [ -n \"${1:-}\" ] && [ -d \"$1\" ]; then roots+=(\"$1\"); fi; return 0; }; probe=\"${CLAUDE_PROJECT_DIR:-$PWD}\"; canonical_probe=\"${CLAUDE_ORCHESTRATOR_ROOT:-$probe}\"; tmp_common=\"${TMPDIR:-/tmp}/claude_hook_common.$$\"; if command -v git >/dev/null 2>&1 && git -C \"$canonical_probe\" rev-parse --path-format=absolute --git-common-dir >\"$tmp_common\" 2>/dev/null; then common=\"$(cat \"$tmp_common\")\"; rm -f \"$tmp_common\"; [ \"$(basename \"$common\")\" = \".git\" ] && add_root \"$(dirname \"$common\")\"; fi; rm -f \"$tmp_common\" 2>/dev/null || true; case \"$canonical_probe\" in *-worktrees/*) add_root \"${canonical_probe%%-worktrees/*}\";; esac; add_root \"${CLAUDE_ORCHESTRATOR_ROOT:-}\"; if command -v git >/dev/null 2>&1 && git -C \"$probe\" rev-parse --path-format=absolute --git-common-dir >\"$tmp_common\" 2>/dev/null; then common=\"$(cat \"$tmp_common\")\"; rm -f \"$tmp_common\"; [ \"$(basename \"$common\")\" = \".git\" ] && add_root \"$(dirname \"$common\")\"; fi; rm -f \"$tmp_common\" 2>/dev/null || true; add_root \"$probe\"; add_root \"$PWD\"; case \"$probe\" in *-worktrees/*) add_root \"${probe%%-worktrees/*}\";; esac; cur=\"$probe\"; while [ -n \"$cur\" ] && [ \"$cur\" != / ]; do add_root \"$cur\"; cur=\"$(dirname \"$cur\")\"; done; seen=\"|\"; for root in \"${roots[@]}\"; do case \"$seen\" in *\"|$root|\"*) continue;; esac; seen=\"$seen$root|\"; if [ -f \"$root/.claude/bin/run_hook.sh\" ]; then export CLAUDE_WORKSPACE_ROOT=\"$probe\"; exec bash \"$root/.claude/bin/run_hook.sh\" \"$hook\" \"$@\"; fi; done; echo \"HOOK_ROOT_WARN: missing $hook from $probe; set CLAUDE_ORCHESTRATOR_ROOT to canonical repo root\" >&2; exit 0' _ hook_finalize_deferred_cleanup.py",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "ConfigChange": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -lc 'hook=\"$1\"; shift || true; roots=(); add_root(){ if [ -n \"${1:-}\" ] && [ -d \"$1\" ]; then roots+=(\"$1\"); fi; return 0; }; probe=\"${CLAUDE_PROJECT_DIR:-$PWD}\"; canonical_probe=\"${CLAUDE_ORCHESTRATOR_ROOT:-$probe}\"; tmp_common=\"${TMPDIR:-/tmp}/claude_hook_common.$$\"; if command -v git >/dev/null 2>&1 && git -C \"$canonical_probe\" rev-parse --path-format=absolute --git-common-dir >\"$tmp_common\" 2>/dev/null; then common=\"$(cat \"$tmp_common\")\"; rm -f \"$tmp_common\"; [ \"$(basename \"$common\")\" = \".git\" ] && add_root \"$(dirname \"$common\")\"; fi; rm -f \"$tmp_common\" 2>/dev/null || true; case \"$canonical_probe\" in *-worktrees/*) add_root \"${canonical_probe%%-worktrees/*}\";; esac; add_root \"${CLAUDE_ORCHESTRATOR_ROOT:-}\"; if command -v git >/dev/null 2>&1 && git -C \"$probe\" rev-parse --path-format=absolute --git-common-dir >\"$tmp_common\" 2>/dev/null; then common=\"$(cat \"$tmp_common\")\"; rm -f \"$tmp_common\"; [ \"$(basename \"$common\")\" = \".git\" ] && add_root \"$(dirname \"$common\")\"; fi; rm -f \"$tmp_common\" 2>/dev/null || true; add_root \"$probe\"; add_root \"$PWD\"; case \"$probe\" in *-worktrees/*) add_root \"${probe%%-worktrees/*}\";; esac; cur=\"$probe\"; while [ -n \"$cur\" ] && [ \"$cur\" != / ]; do add_root \"$cur\"; cur=\"$(dirname \"$cur\")\"; done; seen=\"|\"; for root in \"${roots[@]}\"; do case \"$seen\" in *\"|$root|\"*) continue;; esac; seen=\"$seen$root|\"; if [ -f \"$root/.claude/bin/run_hook.sh\" ]; then export CLAUDE_WORKSPACE_ROOT=\"$probe\"; exec bash \"$root/.claude/bin/run_hook.sh\" \"$hook\" \"$@\"; fi; done; echo \"HOOK_ROOT_WARN: missing $hook from $probe; set CLAUDE_ORCHESTRATOR_ROOT to canonical repo root\" >&2; exit 0' _ hook_update_ledger.py",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "manual|auto",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -lc 'hook=\"$1\"; shift || true; roots=(); add_root(){ if [ -n \"${1:-}\" ] && [ -d \"$1\" ]; then roots+=(\"$1\"); fi; return 0; }; probe=\"${CLAUDE_PROJECT_DIR:-$PWD}\"; canonical_probe=\"${CLAUDE_ORCHESTRATOR_ROOT:-$probe}\"; tmp_common=\"${TMPDIR:-/tmp}/claude_hook_common.$$\"; if command -v git >/dev/null 2>&1 && git -C \"$canonical_probe\" rev-parse --path-format=absolute --git-common-dir >\"$tmp_common\" 2>/dev/null; then common=\"$(cat \"$tmp_common\")\"; rm -f \"$tmp_common\"; [ \"$(basename \"$common\")\" = \".git\" ] && add_root \"$(dirname \"$common\")\"; fi; rm -f \"$tmp_common\" 2>/dev/null || true; case \"$canonical_probe\" in *-worktrees/*) add_root \"${canonical_probe%%-worktrees/*}\";; esac; add_root \"${CLAUDE_ORCHESTRATOR_ROOT:-}\"; if command -v git >/dev/null 2>&1 && git -C \"$probe\" rev-parse --path-format=absolute --git-common-dir >\"$tmp_common\" 2>/dev/null; then common=\"$(cat \"$tmp_common\")\"; rm -f \"$tmp_common\"; [ \"$(basename \"$common\")\" = \".git\" ] && add_root \"$(dirname \"$common\")\"; fi; rm -f \"$tmp_common\" 2>/dev/null || true; add_root \"$probe\"; add_root \"$PWD\"; case \"$probe\" in *-worktrees/*) add_root \"${probe%%-worktrees/*}\";; esac; cur=\"$probe\"; while [ -n \"$cur\" ] && [ \"$cur\" != / ]; do add_root \"$cur\"; cur=\"$(dirname \"$cur\")\"; done; seen=\"|\"; for root in \"${roots[@]}\"; do case \"$seen\" in *\"|$root|\"*) continue;; esac; seen=\"$seen$root|\"; if [ -f \"$root/.claude/bin/run_hook.sh\" ]; then export CLAUDE_WORKSPACE_ROOT=\"$probe\"; exec bash \"$root/.claude/bin/run_hook.sh\" \"$hook\" \"$@\"; fi; done; echo \"HOOK_ROOT_WARN: missing $hook from $probe; set CLAUDE_ORCHESTRATOR_ROOT to canonical repo root\" >&2; exit 0' _ hook_compact_agent_memory.py",
+            "timeout": 20
+          }
+        ]
+      }
+    ]
+  },
+  "env": {
+    "CLAUDE_SPAWN_BUDGET": "70",
+    "CLAUDE_UNIX_PATH_HINT": "~/.rd/bin:/opt/homebrew/bin:/usr/local/bin",
+    "CLAUDE_LOCK_TIMEOUT_SECONDS": "60"
+  }
+}

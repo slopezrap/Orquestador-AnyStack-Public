@@ -1,0 +1,171 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "orchestrator.anystack.verify-slice-handoff",
+  "title": "Blueprint verify-slice handoff contract",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "TASK_ID",
+    "VERIFY_OUTCOME",
+    "HANDOFF",
+    "EVIDENCE",
+    "NO_STUB_DATA",
+    "NO_STUB_DATA_USED",
+    "REAL_DATA_SOURCE",
+    "FLOWS_TESTED",
+    "DATA_SETUP",
+    "DATA_CONTRACT_ROWS",
+    "PERSISTED_DATA_OBSERVED",
+    "RUNTIME_LOGS_CHECKED",
+    "ERROR_LOGS_STATUS",
+    "RUNTIME_LOG_ERRORS"
+  ],
+  "properties": {
+    "TASK_ID": {
+      "type": "string",
+      "pattern": "^SLICE-[A-Za-z0-9_.:-]+$"
+    },
+    "VERIFY_OUTCOME": {
+      "type": "string",
+      "enum": [
+        "verified",
+        "issues_found",
+        "blocked"
+      ]
+    },
+    "OUTCOME": {
+      "type": "string",
+      "enum": [
+        "verified",
+        "issues_found",
+        "blocked"
+      ]
+    },
+    "NEXT_STATUS": {
+      "type": "string",
+      "enum": [
+        "verified_pending_close",
+        "needs_debug",
+        "blocked"
+      ]
+    },
+    "HANDOFF": {
+      "type": "string"
+    },
+    "EVIDENCE": {
+      "type": "string"
+    },
+    "MCP_BROWSER": {
+      "type": "string",
+      "description": "Browser MCP for web visual verification, or not_applicable:no_ui_surface for backend/no-UI verification."
+    },
+    "MCP_CLIENT": {
+      "type": "string",
+      "enum": [
+        "dart",
+        "flutter",
+        "flutter-driver",
+        "not_applicable",
+        "pending"
+      ]
+    },
+    "VISUAL_CHECK_METHOD": {
+      "type": "string",
+      "enum": [
+        "browser",
+        "backend",
+        "simulator",
+        "emulator",
+        "device",
+        "ios-simulator",
+        "android-emulator",
+        "physical-device",
+        "not_applicable",
+        "pending"
+      ]
+    },
+    "REAL_OR_PROVIDED_DATA_USED": {
+      "type": "string"
+    },
+    "REAL_DATA_OR_USER_PROVIDED": {
+      "type": "string"
+    },
+    "REAL_DATA_SOURCE": {
+      "type": "string",
+      "minLength": 3
+    },
+    "NO_STUB_DATA": {
+      "type": "string"
+    },
+    "NO_STUB_DATA_USED": {
+      "type": "string"
+    },
+    "FLOWS_TESTED": {
+      "type": "string",
+      "minLength": 3
+    },
+    "DATA_SETUP": {
+      "type": "string",
+      "minLength": 3
+    },
+    "DATA_CONTRACT_ROWS": {
+      "type": "string",
+      "minLength": 3
+    },
+    "PERSISTED_DATA_OBSERVED": {
+      "type": "string",
+      "minLength": 3
+    },
+    "RUNTIME_LOGS_CHECKED": {
+      "type": "string"
+    },
+    "ERROR_LOGS_STATUS": {
+      "type": "string",
+      "enum": [
+        "clean",
+        "blocked",
+        "issues_found",
+        "not_applicable"
+      ]
+    },
+    "RUNTIME_LOG_ERRORS": {
+      "type": "string"
+    },
+    "DOMAIN_RULES_VERIFIED": {
+      "type": "string"
+    },
+    "RUNTIME_COMMAND_OUTPUT_CAPTURED": {
+      "type": "string"
+    },
+    "EVIDENCE_ENDPOINT_SERVICE": {
+      "type": "string"
+    },
+    "EVIDENCE_MIGRATION_DDL_DATA": {
+      "type": "string"
+    },
+    "EVIDENCE_PIPELINE_WORKER_QUEUE": {
+      "type": "string"
+    },
+    "EVIDENCE_DEPENDENCY_RUNTIME": {
+      "type": "string"
+    },
+    "EVIDENCE_INTEGRATION_PROVIDER": {
+      "type": "string"
+    },
+    "EVIDENCE_CORE_LOGIC": {
+      "type": "string"
+    },
+    "EVIDENCE_PERMISSION_STATE_ERROR": {
+      "type": "string"
+    },
+    "EVIDENCE_RUNTIME_CONTRACT_FALLBACK": {
+      "type": "string"
+    }
+  },
+  "x-runtime-note": "The hook enforces UI-vs-backend routing from verification_surface. This schema keeps the durable handoff evidence surface explicit.",
+  "x-enforced-by": [
+    ".claude/bin/check_handoff_contract.py",
+    ".claude/bin/verify_slice_state.py",
+    "orchestrator/hooks/hook_capture_subagent_stop.py"
+  ]
+}

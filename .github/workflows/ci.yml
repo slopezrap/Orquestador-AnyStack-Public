@@ -1,0 +1,104 @@
+name: CI
+
+"on":
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+      - name: Install package and test tools
+        run: python -m pip install --upgrade pip && python -m pip install -e '.[dev]'
+      - name: Shell and Python syntax checks
+        run: |
+          bash -n scripts/*.sh .claude/enforcers/*.sh .claude/git-workflows/*.sh
+          python -m compileall -q orchestrator .claude/bin scripts
+          python scripts/check-python-runtime.py --min-version 3.13
+      - name: Static orchestrator checks
+        run: ./scripts/run-all-tests.sh lint
+
+  claude-code-adapter:
+    name: Claude Code adapter
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+      - name: Install package and test tools
+        run: python -m pip install --upgrade pip && python -m pip install -e '.[dev]'
+      - name: Validate Claude Code adapter contracts
+        run: |
+          ./scripts/check-claude-adapter.sh
+          ./scripts/check-skills-runtime.sh
+          ./scripts/check-git-pr-flow.sh
+          ./scripts/check-unix-agent-runtime.sh
+          ./scripts/audit-runtime-surface.sh
+          ./scripts/audit-state-machine-contract.sh
+          ./scripts/audit-agent-trailer-vocabulary.py
+          ./scripts/validate-orchestrator-schemas.sh
+
+  bootstrap:
+    name: Bootstrap
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+      - name: Install package and test tools
+        run: python -m pip install --upgrade pip && python -m pip install -e '.[dev]'
+      - name: Compile blueprint and bootstrap registry
+        run: |
+          ./scripts/reset-state.sh
+          ./scripts/compile-blueprint.sh inputs/BLUEPRINT.md
+          ./scripts/bootstrap-registry.sh orchestrator-state/compiled/orchestrator-input.json
+          ./scripts/check-task-dag.sh
+          ./scripts/check-parallel-locks.sh
+          ./scripts/check-task-descriptions.sh
+          ./scripts/check-blueprint-machine-contract.sh
+          ./scripts/check-blueprint-contract.sh
+          ./scripts/check-gold-blueprint.sh inputs/BLUEPRINT.md
+          ./scripts/check-gold-blueprint.sh examples/gold/BLUEPRINT.md
+          ./scripts/check-orchestrator-gaps.sh
+          ./scripts/orchestrator-doctor.sh
+          ./scripts/simulate-blueprint-to-claude-flow.sh
+          ./scripts/run-golden-e2e.sh
+
+  unit-tests-313:
+    name: Unit tests 3.13
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+      - name: Install package and test tools
+        run: python -m pip install --upgrade pip && python -m pip install -e '.[dev]'
+      - name: Run unit tests
+        env:
+          PYTEST_DISABLE_PLUGIN_AUTOLOAD: '1'
+        run: python scripts/run-tests-one-by-one.py --timeout 180 tests/test_*.py

@@ -1,0 +1,741 @@
+{
+  "schema_version": "current",
+  "state_machine": "orchestrator/rules/state-machine.yaml",
+  "trailer_schema": {
+    "policy": "Blueprint-first Claude adapter contract. DAG/subagent semantics are defined by inputs/BLUEPRINT.md yaml orchestrator blocks, compiled task packs, hooks, trailers and the state machine. Mutating roles must provide AGENT-scoped trailers, durable handoffs/evidence and legal state transitions. Info-only roles write metadata only. Journey-gate fields are accepted for runtime contract but lifecycle status is still controlled by state-machine.yaml.",
+    "global_keys": [
+      "ACCEPTED_BY_HOOK",
+      "AGENT",
+      "BASELINE_SYNC_READY",
+      "BLOCKER_REASON",
+      "CANONICAL_MAIN_SYNCED",
+      "CONTEXT_READY",
+      "DEPENDENCY_RATIONALE_READY",
+      "DEPLOY_READY",
+      "DEPLOY_URL",
+      "DEV_PORTS_RELEASED",
+      "DOCKER_RUNTIME_CLEANED",
+      "EVIDENCE",
+      "EVIDENCE_READY",
+      "GIT_READY",
+      "GIT_WORKFLOW_READY",
+      "HANDOFF",
+      "HANDOFF_READY",
+      "JOURNEY_ID",
+      "JOURNEY_PENDING_VERIFY",
+      "JOURNEY_VERIFY_OUTCOME",
+      "JOURNEY_VERIFY_WAIVED",
+      "MERGED",
+      "NEEDS_OFFICIAL_DOCS",
+      "NEXT_STATUS",
+      "NO_STUB_DATA_USED",
+      "OUTCOME",
+      "PR_READY",
+      "PR_URL",
+      "PUSH_READY",
+      "RANCHER_RUNTIME_CLEANED",
+      "REAL_DATA_OR_USER_PROVIDED",
+      "REMOTE_BRANCH_CLEANED",
+      "REPORT",
+      "REPORT_READY",
+      "RESOLVED_SPECS_READY",
+      "RUNTIME_CLEANED",
+      "RUNTIME_LOGS_CHECKED",
+      "TASK_ID",
+      "VERIFY_OUTCOME",
+      "WORKTREES_CLEANED"
+    ],
+    "roles": {
+      "developer": {
+        "required_keys": [
+          "AGENT",
+          "TASK_ID",
+          "OUTCOME",
+          "NEXT_STATUS",
+          "HANDOFF",
+          "EVIDENCE"
+        ],
+        "outcome_values": [
+          "success",
+          "blocked",
+          "failed"
+        ],
+        "next_status_values": [
+          "validator_tester_pending",
+          "blocked"
+        ],
+        "mutates_registry_lifecycle": true,
+        "info_only": false
+      },
+      "debugger": {
+        "required_keys": [
+          "AGENT",
+          "TASK_ID",
+          "OUTCOME",
+          "NEXT_STATUS",
+          "HANDOFF",
+          "EVIDENCE"
+        ],
+        "outcome_values": [
+          "fixed",
+          "blocked",
+          "failed"
+        ],
+        "next_status_values": [
+          "validator_tester_pending",
+          "blocked"
+        ],
+        "mutates_registry_lifecycle": true,
+        "info_only": false
+      },
+      "tester": {
+        "required_keys": [
+          "AGENT",
+          "TASK_ID",
+          "OUTCOME",
+          "NEXT_STATUS",
+          "HANDOFF",
+          "EVIDENCE"
+        ],
+        "outcome_values": [
+          "pass",
+          "fail",
+          "blocked"
+        ],
+        "next_status_values": [
+          "ready_for_close",
+          "needs_debug",
+          "blocked"
+        ],
+        "mutates_registry_lifecycle": true,
+        "info_only": false
+      },
+      "slice-verifier": {
+        "required_keys": [
+          "AGENT",
+          "TASK_ID",
+          "OUTCOME",
+          "NEXT_STATUS",
+          "HANDOFF",
+          "EVIDENCE",
+          "VERIFY_OUTCOME",
+          "REAL_DATA_OR_USER_PROVIDED",
+          "NO_STUB_DATA_USED",
+          "RUNTIME_LOGS_CHECKED"
+        ],
+        "outcome_values": [
+          "verified",
+          "issues_found",
+          "blocked"
+        ],
+        "next_status_values": [
+          "verified_pending_close",
+          "needs_debug",
+          "blocked"
+        ],
+        "mutates_registry_lifecycle": true,
+        "info_only": false
+      },
+      "closer": {
+        "required_keys": [
+          "AGENT",
+          "TASK_ID",
+          "OUTCOME",
+          "NEXT_STATUS",
+          "HANDOFF",
+          "REPORT",
+          "REPORT_READY",
+          "BASELINE_SYNC_READY",
+          "GIT_READY",
+          "PUSH_READY",
+          "GIT_WORKFLOW_READY",
+          "RUNTIME_CLEANED",
+          "DOCKER_RUNTIME_CLEANED",
+          "RANCHER_RUNTIME_CLEANED",
+          "DEV_PORTS_RELEASED",
+          "WORKTREES_CLEANED"
+        ],
+        "outcome_values": [
+          "committed",
+          "blocked"
+        ],
+        "next_status_values": [
+          "done",
+          "blocked"
+        ],
+        "mutates_registry_lifecycle": true,
+        "info_only": false,
+        "allowed_to_close_task": true,
+        "transport_completion_policy": "For pr-flow, done requires PR_READY=yes, MERGED=yes, CANONICAL_MAIN_SYNCED=yes, plus report/runtime-snapshot/git/push/workflow/runtime/worktree proof and runtime cleanup detail: DOCKER_RUNTIME_CLEANED, RANCHER_RUNTIME_CLEANED and DEV_PORTS_RELEASED must be yes or not_applicable:<reason>. PR open, queued, unmerged, dirty root, cleanup failure or unreleased ports is blocked, not done."
+      },
+      "validator": {
+        "required_keys": [
+          "AGENT",
+          "TASK_ID",
+          "OUTCOME",
+          "HANDOFF"
+        ],
+        "outcome_values": [
+          "approved",
+          "changes_requested",
+          "blocked"
+        ],
+        "next_status_values": [],
+        "mutates_registry_lifecycle": false,
+        "info_only": true
+      },
+      "planner": {
+        "required_keys": [
+          "AGENT",
+          "TASK_ID",
+          "OUTCOME",
+          "CONTEXT_READY",
+          "NEEDS_OFFICIAL_DOCS"
+        ],
+        "outcome_values": [
+          "ready",
+          "blocked"
+        ],
+        "next_status_values": [],
+        "mutates_registry_lifecycle": false,
+        "info_only": true
+      },
+      "main-orchestrator": {
+        "required_keys": [
+          "AGENT",
+          "TASK_ID",
+          "OUTCOME"
+        ],
+        "outcome_values": [
+          "ready",
+          "blocked"
+        ],
+        "next_status_values": [],
+        "mutates_registry_lifecycle": false,
+        "info_only": true
+      },
+      "official-docs-researcher": {
+        "required_keys": [
+          "AGENT",
+          "TASK_ID",
+          "OUTCOME"
+        ],
+        "outcome_values": [
+          "verified",
+          "discrepancy",
+          "insufficient"
+        ],
+        "next_status_values": [],
+        "mutates_registry_lifecycle": false,
+        "info_only": true
+      },
+      "screen-journey-reviewer": {
+        "required_keys": [
+          "AGENT",
+          "TASK_ID",
+          "OUTCOME",
+          "HANDOFF"
+        ],
+        "outcome_values": [
+          "approved",
+          "changes_requested",
+          "blocked"
+        ],
+        "next_status_values": [],
+        "mutates_registry_lifecycle": false,
+        "info_only": true
+      },
+      "blueprint-reviewer": {
+        "required_keys": [
+          "AGENT",
+          "TASK_ID",
+          "OUTCOME"
+        ],
+        "outcome_values": [
+          "valid",
+          "invalid",
+          "blocked"
+        ],
+        "next_status_values": [],
+        "mutates_registry_lifecycle": false,
+        "info_only": true
+      },
+      "deployer": {
+        "required_keys": [
+          "AGENT",
+          "TASK_ID",
+          "OUTCOME",
+          "NEXT_STATUS",
+          "HANDOFF",
+          "EVIDENCE"
+        ],
+        "outcome_values": [
+          "deployed",
+          "planned",
+          "blocked",
+          "failed"
+        ],
+        "next_status_values": [
+          "ready_for_close",
+          "blocked"
+        ],
+        "mutates_registry_lifecycle": true,
+        "info_only": false
+      },
+      "task-planner": {
+        "required_keys": [
+          "AGENT",
+          "TASK_ID",
+          "OUTCOME",
+          "CONTEXT_READY",
+          "NEEDS_OFFICIAL_DOCS"
+        ],
+        "outcome_values": [
+          "ready",
+          "blocked"
+        ],
+        "next_status_values": [],
+        "mutates_registry_lifecycle": false,
+        "info_only": true,
+        "alias_for": "planner"
+      },
+      "document-analyzer": {
+        "required_keys": [
+          "AGENT",
+          "TASK_ID",
+          "OUTCOME"
+        ],
+        "outcome_values": [
+          "valid",
+          "invalid",
+          "blocked"
+        ],
+        "next_status_values": [],
+        "mutates_registry_lifecycle": false,
+        "info_only": true
+      },
+      "project-architect": {
+        "required_keys": [
+          "AGENT",
+          "TASK_ID",
+          "OUTCOME"
+        ],
+        "outcome_values": [
+          "ready",
+          "changes_required",
+          "blocked"
+        ],
+        "next_status_values": [],
+        "mutates_registry_lifecycle": false,
+        "info_only": true
+      }
+    },
+    "closer_done_requires": [
+      "OUTCOME: committed",
+      "NEXT_STATUS: done",
+      "REPORT: orchestrator-state/tasks/reports/<TASK_ID>.md",
+      "HANDOFF: orchestrator-state/tasks/handoffs/<TASK_ID>.md",
+      "REPORT_READY: yes",
+      "BASELINE_SYNC_READY: yes",
+      "GIT_READY: yes",
+      "PUSH_READY: yes",
+      "GIT_WORKFLOW_READY: yes",
+      "RUNTIME_CLEANED: yes",
+      "WORKTREES_CLEANED: yes",
+      "PR_READY: yes (when git_workflow.mode=pr-flow)",
+      "MERGED: yes (when git_workflow.mode=pr-flow)",
+      "CANONICAL_MAIN_SYNCED: yes (when git_workflow.mode=pr-flow)",
+      "DOCKER_RUNTIME_CLEANED",
+      "RANCHER_RUNTIME_CLEANED",
+      "DEV_PORTS_RELEASED"
+    ],
+    "json_trailer_format": {
+      "recommended": true,
+      "shape": {
+        "claude_trailer": {
+          "TASK_ID": "<TASK_ID>",
+          "OUTCOME": "<role outcome>",
+          "NEXT_STATUS": "<role next status>",
+          "AGENT": "<agent-name>"
+        }
+      }
+    }
+  },
+  "handoff_contract": {
+    "handoff_dir": "orchestrator-state/tasks/handoffs/<TASK_ID>.md",
+    "evidence_dir": "orchestrator-state/tasks/evidence/<TASK_ID>/",
+    "policy": "Every mutating role appends a section to the task handoff and writes/points to durable evidence. Chat-only success is not a valid lifecycle mutation. init-verify-slice may create a non-trailer pending section, but only the final SubagentStop trailer can mutate state.",
+    "required_sections_by_role": {
+      "developer": "## developer",
+      "debugger": "## debugger",
+      "tester": "## tester",
+      "slice-verifier": "## verify-slice",
+      "deployer": "## deployer",
+      "closer": "## closer"
+    }
+  },
+  "policy": [
+    "Main-orchestrator must include Agent and Skill tools when used as --agent; official-docs-researcher must use official documentation sources only.",
+    "Active prompts define agent/subagent details: manual memory paths, spawn budget, journey gates, root split, pr-flow, worktree/runtime context and blueprint-first resolved_specs."
+  ],
+  "notes": [
+    " keeps inputs/BLUEPRINT.md as the active runtime origin during end-to-end trailer smoke; example blueprints are fixtures, not the packaged active state."
+  ],
+  "runtime_contract": {
+    "parallel_locks": "DAG emits parallel_groups and task.locks; next-wave selects non-conflicting subsets and claim_task rechecks active blockers under POSIX fcntl locks.",
+    "spawn_budget": "Default 70 completed subagents per slice; the 71st Agent spawn is denied by PreToolUse Agent and completed stops are counted by SubagentStop under runtime-state lock.",
+    "journey_gate": "Closer can add pending journey verifications from task.closes_journeys; /verify-journey or explicit JOURNEY_VERIFY_OUTCOME clears them. next-wave defers only tasks that reference pending journeys.",
+    "next_slice_pipeline": {
+      "chain": "planner -> developer ∥ official-docs-researcher? -> validator ∥ tester -> debugger? -> validator ∥ tester -> slice-maintain -> verify-slice automático",
+      "planner": "blocking; prepares task context and NEEDS_OFFICIAL_DOCS before implementation",
+      "developer_parallel_docs": "developer and official-docs-researcher run in the same assistant message only when official docs are needed; researcher is info-only",
+      "validator_tester_parallel": "validator and tester run in one assistant message after developer; validator is info-only, tester is lifecycle",
+      "debugger_loop": "debugger fixes in-scope defects and returns to validator ∥ tester; maximum 4 cycles before blocked",
+      "closure": "tester ready_for_close triggers slice-maintain and automatic verify-slice; closer is manual after verified_pending_close",
+      "debugger_max_cycles": 4
+    }
+  },
+  "runtime_contracts": {
+    "verification_surface": {
+      "source": "registry.tasks[].verification_surface",
+      "rule": "journey_refs alone never require browser/mobile MCP; visual MCP is required only when compiled UI specs, routes, screens or explicit visual/mobile verify modes declare a UI surface.",
+      "non_ui_method_values": [
+        "journey_backend_contract",
+        "backend_runtime",
+        "automated_contract",
+        "deployment_runtime"
+      ]
+    }
+  },
+  "product_name": "orchestrator-AnyStack",
+  "purpose": "Static, machine-readable contract for Claude Code agents, hooks, skills and DAG runtime. Generated state stays outside .claude.",
+  "static_config": {
+    "root": ".claude/",
+    "policy": "Agents must not edit static orchestrator config during product-building runs.",
+    "override_env": "CLAUDE_ALLOW_STATIC_CONFIG_WRITES"
+  },
+  "dag_scope": {
+    "task_id_env": "CLAUDE_ACTIVE_TASK_ID",
+    "task_pack_env": "CLAUDE_TASK_PACK",
+    "task_pack_template": "orchestrator-state/tasks/task-packs/<TASK_ID>.md",
+    "policy": "DAG-only. Worker identity comes from CLAUDE_ACTIVE_TASK_ID plus CLAUDE_TASK_PACK. No implicit task selector exists."
+  },
+  "derived_core_state": {
+    "policy": "Only compiler/bootstrap/claim/hooks/runtime checker scripts may write these files directly under locks.",
+    "files": [
+      "orchestrator-state/compiled/orchestrator-input.json",
+      "orchestrator-state/tasks/registry.json",
+      "orchestrator-state/tasks/runtime-state.json",
+      "orchestrator-state/tasks/task-dag.json",
+      "orchestrator-state/tasks/ledger.jsonl",
+      "orchestrator-state/tasks/bash-ledger.jsonl",
+      "orchestrator-state/memory/PROGRESS.yaml",
+      "orchestrator-state/memory/execution-graph.json"
+    ],
+    "override_env": "CLAUDE_ALLOW_CORE_STATE_WRITES",
+    "canonical_dag_source": "registry.json tasks plus task-dag.json topology; check-task-dag --strict rejects drift."
+  },
+  "agent_write_contract": {
+    "main-orchestrator": {
+      "may_write": [
+        "orchestrator-state/agent-memory/main-orchestrator/MEMORY.yaml",
+        "orchestrator-state/agent-memory/main-orchestrator/archive/**",
+        "handoff notes only through scoped workflow"
+      ],
+      "must_not_write": [
+        "product code",
+        "registry/runtime JSON directly",
+        "generated DAG files directly",
+        "other TASK_ID artifacts"
+      ]
+    },
+    "planner": {
+      "may_write": [
+        "orchestrator-state/agent-memory/planner/MEMORY.yaml",
+        "orchestrator-state/agent-memory/planner/archive/**",
+        "planning notes in active handoff when invoked by next-slice"
+      ],
+      "must_not_write": [
+        "product code",
+        "registry/runtime JSON directly",
+        "generated task-packs directly unless explicit maintenance task"
+      ]
+    },
+    "task-planner": {
+      "may_write": [
+        "orchestrator-state/agent-memory/task-planner/MEMORY.yaml",
+        "orchestrator-state/agent-memory/task-planner/archive/**",
+        "planning reports before execution starts"
+      ],
+      "must_not_write": [
+        "product code",
+        "active DAG task artifacts",
+        "registry/runtime/task-dag directly"
+      ]
+    },
+    "blueprint-reviewer": {
+      "may_write": [
+        "orchestrator-state/agent-memory/blueprint-reviewer/MEMORY.yaml",
+        "orchestrator-state/agent-memory/blueprint-reviewer/archive/**",
+        "blueprint review notes when explicitly requested"
+      ],
+      "must_not_write": [
+        "product code",
+        "registry/runtime JSON directly",
+        "generated DAG files directly"
+      ]
+    },
+    "document-analyzer": {
+      "may_write": [
+        "orchestrator-state/memory/source-manifest.yaml during bootstrap/maintenance",
+        "orchestrator-state/agent-memory/document-analyzer/MEMORY.yaml",
+        "orchestrator-state/agent-memory/document-analyzer/archive/**"
+      ],
+      "must_not_write": [
+        "product code",
+        "active DAG task artifacts",
+        "registry/runtime JSON directly"
+      ]
+    },
+    "project-architect": {
+      "may_write": [
+        "orchestrator-state/memory/architecture-contract.yaml during bootstrap/maintenance",
+        "orchestrator-state/memory/decisions.yaml during bootstrap/maintenance",
+        "orchestrator-state/memory/risk-register.yaml during bootstrap/maintenance",
+        "orchestrator-state/agent-memory/project-architect/MEMORY.yaml"
+      ],
+      "must_not_write": [
+        "product code",
+        "active DAG task artifacts",
+        "registry/runtime JSON directly"
+      ]
+    },
+    "official-docs-researcher": {
+      "may_write": [
+        "orchestrator-state/memory/official-doc-notes/*.md",
+        "orchestrator-state/agent-memory/official-docs-researcher/MEMORY.yaml",
+        "orchestrator-state/agent-memory/official-docs-researcher/archive/**"
+      ],
+      "must_not_write": [
+        "product code",
+        "registry/runtime JSON directly",
+        "generated DAG files directly"
+      ]
+    },
+    "validator": {
+      "may_write": [
+        "append-only sections in orchestrator-state/tasks/handoffs/<TASK_ID>.md",
+        "orchestrator-state/agent-memory/validator/MEMORY.yaml",
+        "orchestrator-state/agent-memory/validator/archive/**",
+        "follow-up candidate metadata in handoff"
+      ],
+      "must_not_write": [
+        "product code",
+        "registry/runtime JSON directly",
+        "promote follow-ups directly"
+      ]
+    },
+    "screen-journey-reviewer": {
+      "may_write": [
+        "append-only sections in orchestrator-state/tasks/handoffs/<TASK_ID>.md",
+        "orchestrator-state/agent-memory/screen-journey-reviewer/MEMORY.yaml",
+        "orchestrator-state/agent-memory/screen-journey-reviewer/archive/**"
+      ],
+      "must_not_write": [
+        "product code",
+        "registry/runtime JSON directly",
+        "generated DAG files directly",
+        "promote follow-ups directly"
+      ]
+    },
+    "developer": {
+      "may_write": [
+        "product code inside task write_set",
+        "shared config files explicitly declared in the DAG task write_set",
+        "orchestrator-state/tasks/handoffs/<TASK_ID>.md",
+        "orchestrator-state/tasks/evidence/<TASK_ID>/developer-*",
+        "orchestrator-state/agent-memory/developer/MEMORY.yaml"
+      ],
+      "must_not_write": [
+        ".claude/**",
+        "orchestrator-state/compiled/**",
+        "orchestrator-state/tasks/registry.json",
+        "orchestrator-state/tasks/runtime-state.json",
+        "orchestrator-state/tasks/task-dag.json",
+        "orchestrator-state/tasks/task-packs/**",
+        "other TASK_ID artifacts"
+      ]
+    },
+    "tester": {
+      "may_write": [
+        "orchestrator-state/tasks/evidence/<TASK_ID>/*",
+        "append-only sections in orchestrator-state/tasks/handoffs/<TASK_ID>.md",
+        "orchestrator-state/agent-memory/tester/MEMORY.yaml",
+        "follow-up candidate metadata in handoff"
+      ],
+      "must_not_write": [
+        "product code except explicit fixture/test-only scope",
+        "registry/runtime JSON directly",
+        "other TASK_ID artifacts"
+      ]
+    },
+    "debugger": {
+      "may_write": [
+        "smallest product-code fix inside TASK_ID write_set",
+        "orchestrator-state/tasks/handoffs/<TASK_ID>.md",
+        "orchestrator-state/tasks/evidence/<TASK_ID>/debugger-*",
+        "orchestrator-state/agent-memory/debugger/MEMORY.yaml"
+      ],
+      "must_not_write": [
+        ".claude/**",
+        "orchestrator-state/compiled/**",
+        "orchestrator-state/tasks/registry.json",
+        "orchestrator-state/tasks/runtime-state.json",
+        "orchestrator-state/tasks/task-dag.json",
+        "orchestrator-state/tasks/task-packs/**",
+        "other TASK_ID artifacts"
+      ]
+    },
+    "slice-verifier": {
+      "may_write": [
+        "orchestrator-state/tasks/handoffs/<TASK_ID>.md",
+        "orchestrator-state/tasks/evidence/<TASK_ID>/**",
+        "orchestrator-state/agent-memory/slice-verifier/MEMORY.yaml"
+      ],
+      "must_not_write": [
+        ".claude/**",
+        "registry/runtime JSON directly",
+        "generated DAG files directly",
+        "commit/push/PR/merge",
+        "promote follow-ups directly"
+      ],
+      "notes": "Human-real verify gate. Writes handoff/evidence only; SubagentStop moves lifecycle when trailer and evidence are valid."
+    },
+    "deployer": {
+      "may_write": [
+        "deployment manifests/config/scripts inside task write_set when deployment is explicitly in scope",
+        "orchestrator-state/tasks/handoffs/<TASK_ID>.md",
+        "orchestrator-state/tasks/evidence/<TASK_ID>/deploy-*",
+        "orchestrator-state/agent-memory/deployer/MEMORY.yaml"
+      ],
+      "must_not_write": [
+        "registry/runtime JSON directly",
+        "deploy to a real target without approved QA/closer gate, dry-run evidence and rollback plan",
+        "other TASK_ID artifacts"
+      ]
+    },
+    "closer": {
+      "may_write": [
+        "orchestrator-state/tasks/reports/<TASK_ID>.md",
+        "append close summary to handoff",
+        "configured Git workflow via ./scripts/git-workflow.sh",
+        "safe worktree cleanup",
+        "orchestrator-state/agent-memory/closer/MEMORY.yaml",
+        "lifecycle event artifacts produced by close scripts"
+      ],
+      "must_not_write": [
+        "product code",
+        "mark done without report/git/pr-flow/cleanup proof",
+        "Co-authored-by trailers or Claude coauthor metadata in commits",
+        "git stash as normal close flow"
+      ]
+    }
+  },
+  "verify_policy": {
+    "risk_level": [
+      "low",
+      "medium",
+      "high",
+      "critical"
+    ],
+    "verify_mode": [
+      "auto",
+      "human"
+    ],
+    "auto_verify_requires": "low risk, deterministic commands, no closing journey, real/provided data evidence",
+    "slice_verifier_agent": "slice-verifier",
+    "state_machine": "tester pass -> ready_for_close; slice-verifier verified -> verified_pending_close; closer committed -> done; issues_found -> needs_debug; blocked stays blocked until rerun by the responsible lifecycle role.",
+    "accepted_browser_mcps": [
+      "chrome-devtools",
+      "claude-in-chrome",
+      "agent360-browser-mcp",
+      "browser-mcp"
+    ],
+    "accepted_mobile_mcps": [
+      "dart",
+      "flutter",
+      "flutter-driver"
+    ],
+    "mobile_visual_check_methods": [
+      "simulator",
+      "emulator",
+      "device"
+    ],
+    "browser_mcp_isolation_policy": "Use isolated browser/profile per TASK_ID. Browser/mobile visual verification is required only when verification_surface.requires_visual_mcp=true.",
+    "backend_no_ui_policy": "For requires_visual_mcp=false, verify real-but-headless evidence using API/DB/worker/dependency/core/log proof; do not block merely because no browser exists."
+  },
+  "followup_tasks": {
+    "purpose": "Only work that cannot reasonably be fixed inside the active TASK_ID becomes a formal DAG follow-up. In-scope defects, small fixes inside the current write_set and mechanical runtime retries stay in the same slice via developer/debugger/retest.",
+    "proposal_dir": "orchestrator-state/tasks/follow-ups/<FOLLOWUP_ID>.yaml",
+    "source_patch_dir": "orchestrator-state/tasks/source-doc-patches/<FOLLOWUP_ID>.md",
+    "proposal_command": "./scripts/register-followup-task.sh propose --origin-task <TASK_ID> --scope-classification <classification> --repair-decision followup_required|human_decision_required --why-not-debugger <reason> --title <title> --severity blocker|critical|high|medium|low [--files-estimate <n|unknown>] [--fits-current-write-set yes|no|unknown] [--outside-current-write-set yes|no|unknown] [--requires-blueprint-change yes|no|unknown] [--requires-new-dependency yes|no|unknown] [--requires-human-decision yes|no|unknown] [--missing-real-data yes|no|unknown] [--description <text>] [--write-set <path>] [--verify <command/evidence>]",
+    "promotion_command": "/promote-followup <FOLLOWUP_ID>",
+    "waiver_command": "./scripts/register-followup-task.sh waive <FOLLOWUP_ID> --reason <human decision>",
+    "promotion_script": "./scripts/register-followup-task.sh promote <FOLLOWUP_ID>",
+    "promotion_policy": "Promotion creates a blueprint patch request. It does not mutate registry.json, task-dag.json or runtime-state.json directly. The accepted change must be added to inputs/BLUEPRINT.md and then compile/bootstrap regenerates the DAG.",
+    "blocking_severities": [
+      "blocker",
+      "critical",
+      "high"
+    ],
+    "scope_classifications": [
+      "out_of_scope",
+      "missing_coverage",
+      "missing_real_data",
+      "external_dependency",
+      "future_enhancement",
+      "scope_expansion",
+      "blocked_by_human_decision"
+    ],
+    "rejected_scope_classification": "in_scope_defect",
+    "policy": "Formal follow-ups do not replace debugger/retest for defects inside the active task pack. Workers only report candidates; main-orchestrator/operator promotes or waives. High/critical/blocker proposed follow-ups block new claims until triaged.",
+    "closer_policy": "Formal proposed follow-ups from the same origin_task_id may be referenced in the closer report and PR, but closer must not convert them into DAG tasks automatically.",
+    "repair_decisions": [
+      "followup_required",
+      "human_decision_required",
+      "fix_in_current_slice",
+      "debugger_retest",
+      "mechanical_retry"
+    ],
+    "rejected_repair_decisions": [
+      "fix_in_current_slice",
+      "debugger_retest",
+      "mechanical_retry"
+    ],
+    "triage_policy": "A follow-up proposal must include explicit repair triage. If the finding fits the current write_set, touches only a few files and needs no blueprint change, new dependency, missing real data or human decision, it must be fixed in the active slice instead of creating a FU.",
+    "hard_triggers_required": [
+      "outside_current_write_set",
+      "requires_blueprint_change",
+      "requires_new_dependency",
+      "missing_real_data",
+      "requires_human_decision"
+    ]
+  },
+  "journey_gate": {
+    "policy": "Pending journeys defer only tasks whose journey_refs or dependencies reference that JID."
+  },
+  "verification": {
+    "shared_file_browser_gate": "Tasks touching shared UI/router/provider/layout surfaces must use human browser/mobile verification when verification_surface declares a visual surface."
+  },
+  "operational_identity": {
+    "package_name": "orchestrator-AnyStack",
+    "orchestrator_kind": "blueprint_first_explicit_dag",
+    "skills_only": true,
+    "commands_directory_expected": false,
+    "notes": [
+      "schema_version fields identify machine-contract schemas, not historical package releases.",
+      "Python and GitHub Action version pins are executable runtime alignment constraints.",
+      "Dependency version/path checks are generic anti-imposter verification steps."
+    ]
+  }
+}

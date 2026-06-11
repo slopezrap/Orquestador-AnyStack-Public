@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "orchestrator.anystack.domain-rule-index",
+  "title": "Derived blueprint domain rule index",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["domain_rules", "task_coverage"],
+  "properties": {
+    "domain_rules": {"type": "object"},
+    "task_coverage": {"type": "object"},
+    "source": {"enum": ["orchestrator-input.json", "registry.json", "compiled-blueprint"]}
+  },
+  "x-runtime-note": "Runtime contract schema. Domain rules come from inputs/BLUEPRINT.md yaml blocks compiled into orchestrator-input.json."
+}
